@@ -27,9 +27,7 @@ int main() {
     printf("Arquivo encontrado e aberto\n");
 
     tamanho_sequencia = getSequencia(arq, sequencia);
-    cout << "Sequencia: " << sequencia << endl;
     tamMemoria = getTamMemoria(arq);
-    cout << "Tamanho memoria: " << tamMemoria << endl;
     closeFile(arq);
 
     cout << endl << "Qual operacao voce deseja fazer?" << endl;
