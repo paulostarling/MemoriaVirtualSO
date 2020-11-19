@@ -175,7 +175,7 @@ void realizaFifo(char *sequencia, int tamanho_sequencia, int tam_memoria){
     for(i = 0; i < tam_memoria; i++){
         fputs("\n", arq_saida);
         for(j = 0; j < tamanho_sequencia; j++){
-           fprintf(arq_saida, '%c', matriz_memoria[i][j]);
+           fprintf(arq_saida, "%c", matriz_memoria[i][j]);
         }
     }
     closeFile(arq_saida);
