@@ -10,6 +10,7 @@ void closeFile(FILE *arq);
 int getSequencia(FILE *arq, char *sequencia);
 int getTamMemoria(FILE *arq);
 void realizaFifo(char *sequencia, int tamanho_sequencia, int tamMemoria);
+void realizaOpt(char *sequencia, int tamanho_sequencia, int tamMemoria);
 void escreveSaida(char *matriz_memoria);
 
 int main() {
@@ -43,6 +44,7 @@ int main() {
         realizaFifo(sequencia, tamanho_sequencia, tamMemoria);
     }else if(opcao == 2){
         cout << "Realiza OPT" << endl;
+        realizaOpt(sequencia, tamanho_sequencia, tamMemoria);
     }else{
         cout << "Op invalida" << endl;
         return 0;
@@ -168,17 +170,98 @@ void realizaFifo(char *sequencia, int tamanho_sequencia, int tam_memoria){
     cout <<  "TOTAL REQUISICOES: " << tamanho_sequencia<< endl;
     cout <<  "TAXA DE ERRO: " << (erros/tamanho_sequencia)<< endl;
 
-    //escreveSaida(tam_memoria, tamanho_sequencia, matriz_memoria);
-    FILE *arq_saida = NULL;
-    arq_saida = fopen("saida.txt", "w");
-    fputs("EVOLUCAO", arq_saida);
+}
+
+void realizaOpt(char *sequencia, int tamanho_sequencia, int tam_memoria){
+    char numero_requisitado;
+    char memoria[tam_memoria];
+    char matriz_memoria[tam_memoria][tamanho_sequencia];
+    //Inicializa matriz
+    int i;
+    int j;
     for(i = 0; i < tam_memoria; i++){
-        fputs("\n", arq_saida);
+        memoria[i] = ' ';
         for(j = 0; j < tamanho_sequencia; j++){
-           fprintf(arq_saida, '%c', matriz_memoria[i][j]);
+            matriz_memoria[i][j] = ' ';
         }
     }
-    closeFile(arq_saida);
+
+    bool hit;
+    double acertos = 0;
+    char maior_tempo;
+    bool memoria_cheia;
+
+    for(i = 0; i < tamanho_sequencia; i++){
+        numero_requisitado = sequencia[i];
+        hit = false;
+        if(i==0){
+            matriz_memoria[0][0] = numero_requisitado;
+            memoria[i] = numero_requisitado;
+        }else{
+            for(j = 0; j < tam_memoria; j++){
+                if(numero_requisitado == memoria[j]){
+                   hit =true;
+                   acertos++;
+                }
+            }
+            if(hit == true){
+                for(j = 0; j < tam_memoria; j++){
+                    matriz_memoria[j][i] = '_';
+                }
+            }else{
+                memoria_cheia = true;
+                for(j = 0; j < tam_memoria; j++){
+                    if(memoria[j] == ' '){
+                        memoria_cheia = false;
+                        memoria[j] = numero_requisitado;
+                        break;
+                    }
+                }
+                if(memoria_cheia){
+                    int relacao_tempo = 0;
+                    for(j = 0; j < tam_memoria; j++){
+                        bool nunca_usado = true;
+                        for(int k = i+1; k < tamanho_sequencia; k++){
+                            if(memoria[j] == sequencia[k]){
+                                nunca_usado = false;
+                                if(k > relacao_tempo){
+                                    relacao_tempo = k;
+                                    maior_tempo = sequencia[k];
+                                }
+                                break;
+                            }
+                        }
+                        if(nunca_usado){
+                            maior_tempo = memoria[j];
+                            break;
+                        }
+                    }
+                    for(j = 0; j < tam_memoria; j++){
+                        if(memoria[j] == maior_tempo){
+                            memoria[j] = sequencia[i];
+                            break;
+                        }
+                    }
+                }
+                for(j = 0; j < tam_memoria; j++){
+                    matriz_memoria[j][i] = memoria[j];
+                }
+            }
+        }
+    }
+
+    for(i = 0; i < tam_memoria; i++){
+        cout << endl;
+        for(j = 0; j < tamanho_sequencia; j++){
+           cout <<  matriz_memoria[i][j];
+        }
+    }
+
+    double erros = tamanho_sequencia - acertos;
+    cout << endl <<  "ACERTOS: " << acertos<< endl;
+    cout <<  "ERROS: " << erros << endl;
+    cout <<  "TOTAL REQUISICOES: " << tamanho_sequencia<< endl;
+    cout <<  "TAXA DE ERRO: " << (erros/tamanho_sequencia)<< endl;
 }
 
 
