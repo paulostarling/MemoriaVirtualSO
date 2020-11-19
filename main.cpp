@@ -1,4 +1,5 @@
 #include <iostream>
+#include <queue>
 
 using namespace std;
 
@@ -9,12 +10,12 @@ void closeFile(FILE *arq);
 int getSequencia(FILE *arq, char *sequencia);
 int getTamMemoria(FILE *arq);
 void realizaFifo(char *sequencia, int tamanho_sequencia, int tamMemoria);
+void escreveSaida(char *matriz_memoria);
 
 int main() {
     char sequencia[100];
     int tamanho_sequencia;
     FILE *arq = NULL;
-    FILE *arq_saida = NULL;
     int tamMemoria;
 
     arq = openFile(arq);
@@ -91,22 +92,93 @@ int getSequencia(FILE *arq, char *sequencia_formatada) {
     return j;
 }
 
-void realizaFifo(char *sequencia, int tamanho_sequencia, int tamMemoria){
-    int matriz_evolucao[tamMemoria][tamanho_sequencia];
-    for(int i = 0; i < tamMemoria; i++){
-        for(int j = 0; j < tamanho_sequencia; j++){
-            matriz_evolucao[i][j] = NULL;
+void realizaFifo(char *sequencia, int tamanho_sequencia, int tam_memoria){
+    char numero_requisitado;
+    char memoria[tam_memoria];
+    char matriz_memoria[tam_memoria][tamanho_sequencia];
+    //Inicializa matriz
+    int i;
+    int j;
+    for(i = 0; i < tam_memoria; i++){
+        memoria[i] = ' ';
+        for(j = 0; j < tamanho_sequencia; j++){
+            matriz_memoria[i][j] = ' ';
+        }
+    }
+    bool hit;
+    double acertos = 0;
+    queue<char> fila_chegada;
+    char mais_antigo;
+    bool memoria_cheia;
+
+    for(i = 0; i < tamanho_sequencia; i++){
+        numero_requisitado = sequencia[i];
+        hit = false;
+        if(i==0){
+            mais_antigo = sequencia[0];
+            matriz_memoria[0][0] = numero_requisitado;
+            memoria[i] = numero_requisitado;
+            fila_chegada.push(numero_requisitado);
+        }else{
+            for(j = 0; j < tam_memoria; j++){
+                if(numero_requisitado == memoria[j]){
+                   hit =true;
+                   acertos++;
+                }
+            }
+            if(hit == true){
+                for(j = 0; j < tam_memoria; j++){
+                    matriz_memoria[j][i] = '_';
+                }
+            }else{
+                memoria_cheia = true;
+                fila_chegada.push(numero_requisitado);
+                for(j = 0; j < tam_memoria; j++){
+                    if(memoria[j] == ' '){
+                        memoria_cheia = false;
+                        memoria[j] = numero_requisitado;
+                        break;
+                    }
+                }
+                if(memoria_cheia){
+                    mais_antigo = fila_chegada.front();
+                    for(j = 0; j < tam_memoria; j++){
+                        if(memoria[j] == mais_antigo){
+                            memoria[j] = numero_requisitado;
+                            break;
+                        }
+                    }
+                }
+                for(j = 0; j < tam_memoria; j++){
+                    matriz_memoria[j][i] = memoria[j];
+                }
+            }
         }
     }
 
-    //Finalziar regra do FIFO
-    int numero_requisitado;
-    for(int k = 0; k < tamanho_sequencia; k++){
-        numero_requisitado = sequencia[k] - '0';
-
+    for(i = 0; i < tam_memoria; i++){
+        cout << endl;
+        for(j = 0; j < tamanho_sequencia; j++){
+           cout <<  matriz_memoria[i][j];
+        }
     }
+    double erros = tamanho_sequencia - acertos;
+    cout << endl <<  "ACERTOS: " << acertos<< endl;
+    cout <<  "ERROS: " << erros << endl;
+    cout <<  "TOTAL REQUISICOES: " << tamanho_sequencia<< endl;
+    cout <<  "TAXA DE ERRO: " << (erros/tamanho_sequencia)<< endl;
 
-
+    //escreveSaida(tam_memoria, tamanho_sequencia, matriz_memoria);
+    FILE *arq_saida = NULL;
+    arq_saida = fopen("saida.txt", "w");
+    fputs("EVOLUCAO", arq_saida);
+    for(i = 0; i < tam_memoria; i++){
+        fputs("\n", arq_saida);
+        for(j = 0; j < tamanho_sequencia; j++){
+           fprintf(arq_saida, '%c', matriz_memoria[i][j]);
+        }
+    }
+    closeFile(arq_saida);
 }
 
 
